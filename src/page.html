@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Faucet</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .faucet-container {
+            background-color: #161b22;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.7);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .faucet-container h2 {
+            font-weight: 500;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .form-control, .form-select, .btn {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus, .btn:focus {
+            box-shadow: 0 0 8px #58a6ff;
+            border-color: #58a6ff;
+        }
+
+        .form-control, .form-select {
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+        }
+
+        .form-control {
+            width: 100%;
+        }
+
+        .btn-primary {
+            background-color: #238636;
+            border-color: #238636;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 500;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background-color: #2ea043;
+            border-color: #2ea043;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="faucet-container">
+        <h2>Blockchain Faucet</h2>
+        <form>
+            <div class="form-group mb-5">
+                <input type="text" class="form-control" id="address" placeholder="Enter your address">
+            </div>
+            <div class="form-group mb-4">
+                <select class="form-select" id="network">
+                    <option value="mainnet">Mainnet</option>
+                    <option value="testnet">Testnet</option>
+                    <option value="devnet">Devnet</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

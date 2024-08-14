@@ -1,0 +1,28 @@
+[package]
+name = "faucet"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.7.5"
+blake3 = "1.5.3"
+clap = { version = "4.5.16", features = ["derive"] }
+ed25519 = "2.2.3"
+ed25519-dalek = { version = "2.1.1", features = ["pkcs8"] }
+ferris-says = "0.3.1"
+hyper = "1.4.1"
+log = "0.4.22"
+mockall = "0.13.0"
+prost = "0.13.2"
+rand = "0.8.5"
+serde = { version = "1.0.205", features = ["derive"] }
+serde_json = "1.0.122"
+tokio = { version = "1.39.2", features = ["full"] }
+tonic = "0.12.2"
+tower-http = { version= "0.5.2", features=["trace"]}
+tracing = {version="0.1",features=["log"]}
+tracing-log = "0.2.0"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "tracing-log"] }
+
+[build-dependencies]
+tonic-build = "0.12.2"
