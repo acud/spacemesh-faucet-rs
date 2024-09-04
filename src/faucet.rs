@@ -41,16 +41,15 @@ impl<S: Nonce> Faucet<S> {
         data
     }
 
-    pub async fn sign(&self, msg: crate::DripTx) -> Result<Vec<u8>, ()> {
+    pub async fn sign(&self, msg: crate::DripTx) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let principal = self.principal();
 
         let nonce = self
             .nonce
             .next_nonce(crate::hex::encode_hex(principal.as_slice()))
-            .await
-            .unwrap();
-        let nonce: u8 = nonce.try_into().unwrap();
-        let amount: u8 = msg.amount.try_into().unwrap();
+            .await?;
+        let nonce: u8 = nonce.try_into()?;
+        let amount: u8 = msg.amount.try_into()?;
         let gasprice: u8 = 1;
         let dest: [u8; 24] = [
             0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -74,10 +73,7 @@ impl<S: Nonce> Faucet<S> {
         let mut sign_data = Vec::<u8>::new();
         sign_data.extend_from_slice(&prefix);
         sign_data.extend_from_slice(&bytes);
-        let sig = match self.signing_key.try_sign(&sign_data) {
-            Ok(res) => res,
-            Err(_) => return Err(()),
-        };
+        let sig = self.signing_key.try_sign(&sign_data)?;
         data.extend_from_slice(&sig.to_bytes());
         Ok(data)
     }
@@ -90,8 +86,24 @@ mod tests {
     use ed25519_dalek::{Signer, SigningKey};
 
     use ed25519::pkcs8;
+
+    fn ret_res(i: Option<u8>) -> Result<(), Box<dyn std::error::Error>> {
+        let ii = i.ok_or("no val")?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_err() {
+        let val = Some(5u8);
+        let val = None;
+        match ret_res(val) {
+            Ok(()) => println!("ok"),
+            Err(e) => println!("err! {:?}", e),
+        }
+    }
+
     #[tokio::test]
-    async fn test_something() -> Result<(), ()> {
+    async fn test_sign() -> Result<(), ()> {
         let key = decode_hex("1e71af5c8ee2b519b97cbcc39888372d61a5cd356c3fd7407371cff709209a2ab56b67eea72ae021a82ec3a9c8cd17f71a21067c3ac82b49f1d43cf78db3a780").unwrap();
         let arr: [u8; 64] = key.as_slice().try_into().unwrap();
         let signing_key = SigningKey::from_keypair_bytes(&arr).unwrap();
