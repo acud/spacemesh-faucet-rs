@@ -34,7 +34,7 @@ struct Args {
     rpc_address: String,
 }
 
-const LANDING: &[u8; 3049] = include_bytes!("page.html");
+const LANDING: &[u8; 4522] = include_bytes!("page.html");
 const KEYPAIR_LEN: usize = 64;
 
 #[tokio::main]
@@ -79,7 +79,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let keybytes: [u8; KEYPAIR_LEN] = keybytes.try_into().unwrap();
     let signing_key = SigningKey::from_keypair_bytes(&keybytes).unwrap();
-    let grpc_svc = crate::grpc::RpcClient::new(args.rpc_address).await;
+    //let grpc_svc = crate::grpc::RpcClient::new(args.rpc_address).await;
+    let grpc_svc = crate::grpc::NoopRpcClient::new();
     let fct = faucet::Faucet::new(signing_key, grpc_svc);
     let pubkey = fct.public_key().to_bytes();
     tracing::info!(

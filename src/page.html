@@ -54,10 +54,6 @@
             width: 100%;
         }
 
-        .form-control {
-            width: 100%;
-        }
-
         .btn-primary {
             background-color: #238636;
             border-color: #238636;
@@ -78,22 +74,21 @@
             align-items: flex-start;
             gap: 1rem;
         }
-
-        .form-group input, .form-group select {
-            width: 100%;
-        }
     </style>
 </head>
 
 <body>
     <div class="faucet-container">
         <h2>Blockchain Faucet</h2>
-        <form>
-            <div class="form-group mb-5">
-                <input type="text" class="form-control" id="address" placeholder="Enter your address">
+        <form id="faucetForm">
+            <div class="form-group mb-4">
+                <input type="text" class="form-control" id="address" placeholder="Enter your address" required>
             </div>
             <div class="form-group mb-4">
-                <select class="form-select" id="network">
+                <input type="number" class="form-control" id="amount" placeholder="Enter amount" required>
+            </div>
+            <div class="form-group mb-4">
+                <select class="form-select" id="network" required>
                     <option value="mainnet">Mainnet</option>
                     <option value="testnet">Testnet</option>
                     <option value="devnet">Devnet</option>
@@ -102,7 +97,48 @@
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
     </div>
+
+    <script>
+        // Configure the URL dynamically
+        const faucetUrl = "/sign"; // replace with the actual relative URL
+
+        document.getElementById('faucetForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Collect form data
+            const address = document.getElementById('address').value;
+            const amount = document.getElementById('amount').value;
+            const network = document.getElementById('network').value;
+
+            // Prepare the JSON object
+            const requestData = {
+                address: address,
+                amount: parseFloat(amount), // Convert amount to number
+                <!--network: network-->
+            };
+
+            // Send the POST request using fetch API
+            fetch(faucetUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Handle success or failure
+                console.log("Success: " + JSON.stringify(data));
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                console.log("Failed to send request. Please try again.");
+            });
+        });
+    </script>
+
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
+

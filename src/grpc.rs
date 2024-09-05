@@ -18,6 +18,20 @@ pub trait Nonce: Send + Sync {
     async fn next_nonce(&self, address: String) -> Result<u64, Box<dyn Error>>;
 }
 
+pub struct NoopRpcClient {}
+
+impl NoopRpcClient {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Nonce for NoopRpcClient {
+    async fn next_nonce(&self, _: String) -> Result<u64, Box<dyn Error>> {
+        Ok(0u64)
+    }
+}
+
 pub struct RpcClient {
     svc: Arc<Mutex<AccountServiceClient<tonic::transport::Channel>>>,
 }
