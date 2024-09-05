@@ -38,6 +38,7 @@ impl<S: Nonce> Faucet<S> {
 
     pub async fn sign(&self, msg: crate::DripTx) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let principal = self.principal();
+        let dest = crate::hex::decode_hex(&msg.address)?;
 
         let nonce = self
             .nonce
@@ -46,9 +47,6 @@ impl<S: Nonce> Faucet<S> {
         let nonce: u8 = nonce.try_into()?;
         let amount: u8 = msg.amount.try_into()?;
         let gasprice: u8 = 1;
-        let dest: [u8; 24] = [
-            0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        ];
 
         let nonce = nonce << 2;
         let gasprice = gasprice << 2;
@@ -56,7 +54,6 @@ impl<S: Nonce> Faucet<S> {
         let mut data: Vec<u8> = Vec::new();
         data.push(0); //tx version 0
 
-        // push principal address
         data.extend(principal);
         data.push(16 << 2);
         data.push(nonce);
