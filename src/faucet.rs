@@ -1,9 +1,10 @@
 use crate::grpc::Nonce;
 use ed25519::pkcs8;
 use ed25519::signature::{Keypair, SignatureEncoding, Signer};
-//pub trait Sign: Send + Sync {
-//fn sign(&self, msg: crate::DripTx) -> Result<ed25519::Signature, ()>;
-//}
+
+const TEMPLATE: [u8; 24] = [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+];
 
 pub struct Faucet<S: Nonce> {
     signing_key: ed25519_dalek::SigningKey,
@@ -23,20 +24,14 @@ impl<S: Nonce> Faucet<S> {
     }
 
     fn principal(&self) -> Vec<u8> {
-        let pubkey = self.signing_key.to_bytes();
-        let template: [u8; 24] = [
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        ];
-
-        // Hash an input incrementally.
+        let pubkey = self.signing_key.verifying_key().to_bytes();
         let mut hasher = blake3::Hasher::new();
-        hasher.update(&template);
+        hasher.update(&TEMPLATE);
         hasher.update(&pubkey);
         let addr = hasher.finalize();
         let addr = addr.as_bytes();
         let addr: &[u8] = &addr[12..32];
-        let mut data: Vec<u8> = Vec::new();
-        data.append(&mut vec![0, 0, 0, 0]);
+        let mut data: Vec<u8> = vec![0, 0, 0, 0];
         data.extend_from_slice(addr);
         data
     }
@@ -102,30 +97,46 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_principal() {
+        let key = decode_hex("1e71af5c8ee2b519b97cbcc39888372d61a5cd356c3fd7407371cff709209a2ab56b67eea72ae021a82ec3a9c8cd17f71a21067c3ac82b49f1d43cf78db3a780").unwrap();
+        let arr: [u8; 64] = key.as_slice().try_into().unwrap();
+        let signing_key = SigningKey::from_keypair_bytes(&arr).unwrap();
+        let verifying_key = signing_key.verifying_key();
+        let pubkey = verifying_key.to_bytes();
+        let mut hasher = blake3::Hasher::new();
+        hasher.update(&super::TEMPLATE);
+        hasher.update(&pubkey);
+        let addr = hasher.finalize();
+        let addr = addr.as_bytes();
+        let addr: &[u8] = &addr[12..32];
+        let mut data: Vec<u8> = vec![0, 0, 0, 0];
+        data.extend_from_slice(addr);
+
+        let signing_key = SigningKey::from_keypair_bytes(&arr).unwrap();
+        let faucet = super::Faucet::new(signing_key, crate::grpc::MockNonce::new());
+        let principal = faucet.principal();
+        assert_eq!(principal, data);
+    }
+
     #[tokio::test]
     async fn test_sign() -> Result<(), ()> {
         let key = decode_hex("1e71af5c8ee2b519b97cbcc39888372d61a5cd356c3fd7407371cff709209a2ab56b67eea72ae021a82ec3a9c8cd17f71a21067c3ac82b49f1d43cf78db3a780").unwrap();
         let arr: [u8; 64] = key.as_slice().try_into().unwrap();
         let signing_key = SigningKey::from_keypair_bytes(&arr).unwrap();
         let verifying_key = signing_key.verifying_key();
-        let vv = pkcs8::PublicKeyBytes(verifying_key.to_bytes());
-        println!("{:?}", vv);
-        let mocknonce = crate::grpc::MockNonce::new();
+        let mut mocknonce = crate::grpc::MockNonce::new();
+        mocknonce.expect_next_nonce().times(1).returning(|_| Ok(0));
         let fct = super::Faucet::new(signing_key, mocknonce);
         let pubkey = verifying_key.to_bytes();
-        let template: [u8; 24] = [
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        ];
         let signing_key = SigningKey::from_keypair_bytes(&arr).unwrap();
 
-        // Hash an input incrementally.
         let mut hasher = blake3::Hasher::new();
-        hasher.update(&template);
+        hasher.update(&super::TEMPLATE);
         hasher.update(&pubkey);
         let addr = hasher.finalize();
         let addr = addr.as_bytes();
         let addr: &[u8] = &addr[12..32];
-        println!("{:?}", addr);
 
         let nonce: u8 = 0;
         let amount: u8 = 1;
