@@ -38,15 +38,16 @@ impl<S: Nonce> Faucet<S> {
 
     pub async fn sign(&self, msg: crate::DripTx) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let principal = self.principal();
-        let dest = crate::hex::decode_hex(&msg.address)?;
+        let dest = crate::encoding::decode_hex(&msg.address)?;
 
         let nonce = self
             .nonce
-            .next_nonce(crate::hex::encode_hex(principal.as_slice()))
+            .next_nonce(crate::encoding::encode_hex(principal.as_slice()))
             .await?;
         let nonce: u8 = nonce.try_into()?;
         let nonce = nonce << 2;
-        let amount: u8 = msg.amount.try_into()?;
+        let amount: usize = msg.amount.try_into()?;
+        let amount = crate::encoding::encode_usize(amount);
         let gasprice: u8 = 1 << 2;
 
         let mut data: Vec<u8> = Vec::new();
@@ -57,7 +58,7 @@ impl<S: Nonce> Faucet<S> {
         data.push(nonce);
         data.push(gasprice);
         data.extend_from_slice(&dest);
-        data.push(amount << 2);
+        data.extend_from_slice(amount.as_slice());
         let bytes = data.as_slice();
         let prefix: [u8; 20] = [0; 20];
         let mut sign_data = Vec::<u8>::from(prefix);
@@ -70,26 +71,9 @@ impl<S: Nonce> Faucet<S> {
 
 #[cfg(test)]
 mod tests {
-    use crate::hex::decode_hex;
+    use crate::encoding::decode_hex;
 
     use ed25519_dalek::{Signer, SigningKey};
-
-    use ed25519::pkcs8;
-
-    fn ret_res(i: Option<u8>) -> Result<(), Box<dyn std::error::Error>> {
-        let ii = i.ok_or("no val")?;
-        Ok(())
-    }
-
-    #[test]
-    fn test_err() {
-        let val = Some(5u8);
-        let val = None;
-        match ret_res(val) {
-            Ok(()) => println!("ok"),
-            Err(e) => println!("err! {:?}", e),
-        }
-    }
 
     #[test]
     fn test_principal() {
@@ -165,7 +149,7 @@ mod tests {
         let amount: u64 = amount.try_into().unwrap();
         let faucet_msg = fct
             .sign(crate::DripTx {
-                address: crate::hex::encode_hex(&dest),
+                address: crate::encoding::encode_hex(&dest),
                 amount,
             })
             .await

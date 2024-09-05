@@ -18,9 +18,9 @@ use std::time::Duration;
 use tower_http::{classify::ServerErrorsFailureClass, trace::TraceLayer};
 use tracing::{info_span, Span};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+mod encoding;
 mod faucet;
 mod grpc;
-mod hex;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -72,7 +72,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             false
         }
     });
-    let keybytes = hex::decode_hex(&kb)?;
+    let keybytes = encoding::decode_hex(&kb)?;
     if keybytes.len() != KEYPAIR_LEN {
         tracing::error!("expected a {} byte key length", KEYPAIR_LEN);
         return Ok(());
@@ -85,7 +85,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pubkey = fct.public_key().to_bytes();
     tracing::info!(
         "initialized faucet with public key: {}",
-        hex::encode_hex(&pubkey)
+        encoding::encode_hex(&pubkey)
     );
     let app = Router::new()
         .route("/", get(root))
@@ -149,7 +149,7 @@ async fn handle_sign<S: grpc::Nonce>(
     let sig = state.sign(payload).await.unwrap();
 
     let tx = TxId {
-        tx: crate::hex::encode_hex(sig.as_slice()),
+        tx: crate::encoding::encode_hex(sig.as_slice()),
     };
 
     (StatusCode::OK, Json(tx))
