@@ -162,8 +162,6 @@ mod tests {
         sign_data.extend_from_slice(&bytes);
         let res = signing_key.sign(sign_data.as_slice());
         data.extend_from_slice(&res.to_bytes());
-        let tx = crate::hex::encode_hex(data.as_slice());
-        println!("{}", tx);
         let amount: u64 = amount.try_into().unwrap();
         let faucet_msg = fct
             .sign(crate::DripTx {
