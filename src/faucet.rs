@@ -45,11 +45,9 @@ impl<S: Nonce> Faucet<S> {
             .next_nonce(crate::hex::encode_hex(principal.as_slice()))
             .await?;
         let nonce: u8 = nonce.try_into()?;
-        let amount: u8 = msg.amount.try_into()?;
-        let gasprice: u8 = 1;
-
         let nonce = nonce << 2;
-        let gasprice = gasprice << 2;
+        let amount: u8 = msg.amount.try_into()?;
+        let gasprice: u8 = 1 << 2;
 
         let mut data: Vec<u8> = Vec::new();
         data.push(0); //tx version 0
@@ -62,9 +60,8 @@ impl<S: Nonce> Faucet<S> {
         data.push(amount << 2);
         let bytes = data.as_slice();
         let prefix: [u8; 20] = [0; 20];
-        let mut sign_data = Vec::<u8>::new();
-        sign_data.extend_from_slice(&prefix);
-        sign_data.extend_from_slice(&bytes);
+        let mut sign_data = Vec::<u8>::from(prefix);
+        sign_data.extend_from_slice(bytes);
         let sig = self.signing_key.try_sign(&sign_data)?;
         data.extend_from_slice(&sig.to_bytes());
         Ok(data)
