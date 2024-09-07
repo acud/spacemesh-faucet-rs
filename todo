@@ -1,5 +1,5 @@
 - [x] fix unit test for faucet tx sign
 - [x] write the scale encoding for integers
-- [ ] pull the unit tests for the integer encoding
+- [x] pull the unit tests for the integer encoding
 - [ ] try to see if the grpc works against a running node
 - [x] fix the html so that it submits the form back to the api handler

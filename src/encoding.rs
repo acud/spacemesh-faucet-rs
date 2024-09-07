@@ -85,6 +85,8 @@ mod tests {
                 super::MAXUINT30,
                 vec![0b1111_1110, 0b1111_1111, 0b1111_1111, 0b1111_1111],
             ),
+            // these won't encode since the scale varint encoding is missing
+            // in the implementation
             //(
             //super::MAXUINT30 + 1,
             //vec![
@@ -112,12 +114,4 @@ mod tests {
             assert_eq!(ret, tc.1);
         }
     }
-
-    /*
-            {0, []byte{0b0000_0000}},
-           {1, []byte{0b0000_0100}},
-           {maxUint6, []byte{0b1111_1100}},
-           {maxUint8, []byte{0b1111_1101, 0b0000_0011}},
-
-    */
 }
