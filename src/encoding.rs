@@ -1,10 +1,10 @@
 use std::{fmt::Write, num::ParseIntError};
 
-const MAXUINT6: usize = 1 << 6 - 1;
-//const MAXUINT8: usize = 1 << 8 - 1;
-const MAXUINT14: usize = 1 << 14 - 1;
-//const MAXUINT16: usize = 1 << 16 - 1;
-const MAXUINT30: usize = 1 << 30 - 1;
+const MAXUINT6: usize = (1 << 6) - 1;
+const MAXUINT8: usize = (1 << 8) - 1;
+const MAXUINT14: usize = (1 << 14) - 1;
+const MAXUINT16: usize = (1 << 16) - 1;
+const MAXUINT30: usize = (1 << 30) - 1;
 
 pub fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
     (0..s.len())
@@ -40,4 +40,84 @@ pub fn encode_u16(val: u16) -> [u8; 2] {
 
 pub fn encode_u32(val: u32) -> [u8; 4] {
     val.to_le_bytes()
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test() {
+        let tc: Vec<(usize, Vec<u8>)> = vec![
+            // u8 cases
+            (0, vec![0b0000_0000]),
+            (1, vec![0b0000_0100]),
+            (super::MAXUINT6, vec![0b1111_1100]),
+            (super::MAXUINT8, vec![0b1111_1101, 0b0000_0011]),
+            //u16 cases
+            (0, vec![0b0000_0000]),
+            (1, vec![0b0000_0100]),
+            (super::MAXUINT6, vec![0b1111_1100]),
+            (super::MAXUINT8, vec![0b1111_1101, 0b0000_0011]),
+            (super::MAXUINT14, vec![0b1111_1101, 0b1111_1111]),
+            (
+                (super::MAXUINT14 + 1),
+                vec![0b0000_0010, 0b0000_0000, 0b0000_0001, 0b0000_0000],
+            ),
+            (
+                super::MAXUINT16,
+                vec![0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000],
+            ),
+            // u32 cases
+            (0, vec![0b0000_0000]),
+            (1, vec![0b0000_0100]),
+            (super::MAXUINT6, vec![0b1111_1100]),
+            (super::MAXUINT8, vec![0b1111_1101, 0b0000_0011]),
+            (super::MAXUINT14, vec![0b1111_1101, 0b1111_1111]),
+            (
+                super::MAXUINT14 + 1,
+                vec![0b0000_0010, 0b0000_0000, 0b0000_0001, 0b0000_0000],
+            ),
+            (
+                super::MAXUINT16,
+                vec![0b1111_1110, 0b1111_1111, 0b0000_0011, 0b0000_0000],
+            ),
+            (
+                super::MAXUINT30,
+                vec![0b1111_1110, 0b1111_1111, 0b1111_1111, 0b1111_1111],
+            ),
+            //(
+            //super::MAXUINT30 + 1,
+            //vec![
+            //0b0000_0011,
+            //0b0000_0000,
+            //0b0000_0000,
+            //0b0000_0000,
+            //0b0100_0000,
+            //],
+            //),
+            //(
+            //u32::MAX as usize,
+            //vec![
+            //0b0000_0011,
+            //0b1111_1111,
+            //0b1111_1111,
+            //0b1111_1111,
+            //0b1111_1111,
+            //],
+            //),
+        ];
+        for (i, tc) in tc.iter().enumerate() {
+            let ret = super::encode_usize(tc.0);
+            println!("checking case {}", i);
+            assert_eq!(ret, tc.1);
+        }
+    }
+
+    /*
+            {0, []byte{0b0000_0000}},
+           {1, []byte{0b0000_0100}},
+           {maxUint6, []byte{0b1111_1100}},
+           {maxUint8, []byte{0b1111_1101, 0b0000_0011}},
+
+    */
 }
